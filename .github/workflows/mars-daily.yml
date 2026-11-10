@@ -1,8 +1,9 @@
 name: Mars Colony – tägliches Reel
 
 on:
-  schedule:
-    - cron: "0 16 * * *"   # 16:00 UTC = 17:00 (Winter) / 18:00 (Sommer) in Berlin
+  # Täglicher Zeitplan wird erst nach der Freigabe aktiviert:
+  # schedule:
+  #   - cron: "0 16 * * *"   # 16:00 UTC = 17:00 (Winter) / 18:00 (Sommer) in Berlin
   workflow_dispatch:
     inputs:
       mode:
@@ -10,6 +11,13 @@ on:
         default: test
         type: choice
         options: [test, publish]
+      followers:
+        description: "Nur Test: Followerzahl vorgeben (leer = echte Zahl von Instagram)"
+        default: "137"
+      higgsfield:
+        description: "Higgsfield-Clip erzeugen (kostenpflichtig)"
+        default: false
+        type: boolean
 
 concurrency:
   group: mars-colony
@@ -76,7 +84,13 @@ jobs:
           printf '#!/bin/sh\nexec xvfb-run -a -s "-screen 0 1920x1080x24" "$HOME/blender/blender" "$@"\n' > /tmp/blender && chmod +x /tmp/blender
           export BLENDER_BIN=/tmp/blender
           MODE="${{ github.event.inputs.mode || 'publish' }}"
-          python -m mars.pipeline --mode "$MODE"
+          ARGS="--mode $MODE"
+          if [ "$MODE" = "test" ]; then
+            [ -n "${{ github.event.inputs.followers }}" ] && ARGS="$ARGS --followers ${{ github.event.inputs.followers }}"
+            [ "${{ github.event.inputs.higgsfield }}" != "true" ] && ARGS="$ARGS --no-higgsfield"
+            ARGS="$ARGS --fresh"
+          fi
+          python -m mars.pipeline $ARGS
 
       - name: Video als Artefakt sichern
         if: always()
@@ -88,7 +102,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Weltzustand speichern
-        if: always()
+        if: always() && (github.event.inputs.mode || 'publish') == 'publish'
         run: |
           git config user.name "mars-colony-bot"
           git config user.email "actions@users.noreply.github.com"
