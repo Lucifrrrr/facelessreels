@@ -1,0 +1,59 @@
+name: Render-Benchmark (Cloud)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bench:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      PYTHONUTF8: "1"
+      BLENDER_VERSION: "5.3.0"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Systempakete
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q xvfb libegl1 libgl1 libglx-mesa0 libgl1-mesa-dri mesa-utils libxi6 libxkbcommon0 libsm6 libxrender1 libxxf86vm1
+          nproc; free -g
+      - name: Blender aus dem Cache
+        id: blender-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/blender
+          key: blender-${{ env.BLENDER_VERSION }}
+      - name: Blender herunterladen
+        if: steps.blender-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/blender
+          v=${BLENDER_VERSION%.*}
+          curl -fsSL "https://download.blender.org/release/Blender${v}/blender-${BLENDER_VERSION}-linux-x64.tar.xz" | tar -xJ -C ~/blender --strip-components=1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Testwelt
+        run: |
+          pip install num2words tzdata numpy
+          python tests/make_preview_world.py work/bench 1200
+          python - <<'EOF'
+          import json
+          p = {"fps": 24, "width": 1080, "height": 1920, "new_buildings": ["b0019"], "build_shot": "b",
+               "visible_colonists": 40, "shots": [{"name": "b", "type": "flyto", "seconds": 0.42, "building": "b0019"}]}
+          json.dump(p, open("work/bench/bench.json", "w"))
+          EOF
+      - name: EEVEE (xvfb + Mesa)
+        continue-on-error: true
+        run: |
+          xvfb-run -a -s "-screen 0 1920x1080x24" glxinfo -B | head -12 || true
+          time xvfb-run -a -s "-screen 0 1920x1080x24" ~/blender/blender -b --factory-startup -P blender/colony_scene.py -- \
+            --world work/bench/world.json --plan work/bench/bench.json --out work/bench/eevee --engine EEVEE --samples 16 2>&1 | grep -E "Fra:|Einstellung|Szene|Render-Ger|Error|error" | tail -30
+      - name: Cycles CPU
+        continue-on-error: true
+        run: |
+          time ~/blender/blender -b --factory-startup -P blender/colony_scene.py -- \
+            --world work/bench/world.json --plan work/bench/bench.json --out work/bench/cycles --engine CYCLES --samples 12 2>&1 | grep -E "Einstellung|Szene|Render-Ger|Error" | tail -10
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench-frames
+          path: work/bench/*/b/*.jpg

@@ -222,7 +222,7 @@ class Run:
                "--world", str(world_file), "--plan", str(plan_file), "--out", str(frames),
                "--engine", r.get("engine", "EEVEE"), "--samples", str(r["samples"]),
                "--scale", str(r.get("preview_scale", 100))]
-        retry(lambda: compose.run(cmd, timeout=4 * 3600), "Blender-Rendering", attempts=2)
+        retry(lambda: compose.run_stream(cmd, timeout=4 * 3600), "Blender-Rendering", attempts=2)
         return {"frames": str(frames), "shots": [s["name"] for s in shots]}
 
     def s_audio_assets(self):

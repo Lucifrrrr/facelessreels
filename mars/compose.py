@@ -39,6 +39,28 @@ def run(cmd: list[str], timeout: int = 3600) -> subprocess.CompletedProcess:
     return p
 
 
+def run_stream(cmd: list[str], timeout: int = 4 * 3600, keep: tuple[str, ...] = ("Fra:", "Einstellung", "Szene",
+                                                                                 "Render-Ger", "Fertig", "Error", "Traceback")) -> None:
+    """Langlaufende Befehle (Blender) mit sichtbarem Fortschritt im Log."""
+    import time
+    t0 = time.time()
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                         encoding="utf-8", errors="replace")
+    tail, last_frame_log = [], 0.0
+    for line in p.stdout:
+        tail = (tail + [line])[-40:]
+        if any(k in line for k in keep):
+            if line.startswith("Fra:") and time.time() - last_frame_log < 30:
+                continue
+            last_frame_log = time.time()
+            print(f"[{time.time() - t0:6.0f}s] {line.rstrip()[:200]}", flush=True)
+        if time.time() - t0 > timeout:
+            p.kill()
+            raise RuntimeError(f"Zeitlimit überschritten: {cmd[0]}")
+    if p.wait() != 0:
+        raise RuntimeError(f"Befehl fehlgeschlagen ({p.returncode}):\n{''.join(tail)[-2500:]}")
+
+
 def probe(path: Path) -> dict:
     p = run([tool("ffprobe"), "-v", "error", "-show_streams", "-show_format", "-of", "json", str(path)])
     return json.loads(p.stdout)
