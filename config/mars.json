@@ -1,0 +1,79 @@
+{
+  "project": "mars-colony",
+  "language": "de",
+  "timezone": "Europe/Berlin",
+  "seed": 2026,
+  "video": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "min_seconds": 35,
+    "max_seconds": 45,
+    "max_bytes": 100000000
+  },
+  "render": {
+    "engine": "EEVEE",
+    "samples": 32,
+    "preview_scale": 100
+  },
+  "tts": {
+    "engine": "piper",
+    "voice": "de_DE-thorsten-high",
+    "length_scale": 1.0
+  },
+  "higgsfield": {
+    "enabled": true,
+    "model": "kling-video/v3.0-turbo/text-to-video",
+    "duration": 5,
+    "resolution": "720p",
+    "max_paid_retries": 1
+  },
+  "budget": {
+    "currency": "EUR",
+    "usd_to_eur": 1.0,
+    "monthly_total_eur": 150,
+    "monthly_higgsfield_eur": 45,
+    "fixed_monthly_costs_eur": {
+      "github_actions": 0,
+      "piper_tts": 0
+    }
+  },
+  "colony": {
+    "colonists_per_habitat": 10,
+    "max_visible_colonists": 80,
+    "plot_size": 9.0
+  },
+  "milestones": [
+    {"followers": 100, "type": "dome_large", "name": "Erste große Wohnkuppel"},
+    {"followers": 250, "type": "solar_farm", "name": "Solarfarm"},
+    {"followers": 500, "type": "residential_complex", "name": "Erweiterter Wohnkomplex"},
+    {"followers": 1000, "type": "hq", "name": "Kolonie-Hauptquartier"},
+    {"followers": 2500, "type": "research_center", "name": "Forschungszentrum"},
+    {"followers": 5000, "type": "district", "name": "Neuer Stadtbezirk"},
+    {"followers": 10000, "type": "mega_dome", "name": "Riesige Marskuppel"},
+    {"followers": 25000, "type": "spaceport", "name": "Raumhafen"},
+    {"followers": 50000, "type": "second_city", "name": "Zweite Marsstadt"},
+    {"followers": 100000, "type": "landmark", "name": "Monument der Kolonie"}
+  ],
+  "vote_options": {
+    "oxygen_plant": "eine neue Sauerstoffanlage",
+    "research_lab": "ein Forschungslabor",
+    "greenhouse": "ein Gewächshaus",
+    "water_extractor": "eine Wasserförderanlage",
+    "rover_garage": "eine Rover-Garage",
+    "comm_tower": "einen Funkturm",
+    "medical_center": "eine Krankenstation",
+    "mining_rig": "eine Bergbauanlage",
+    "battery_bank": "einen Energiespeicher",
+    "observatory": "eine Sternwarte"
+  },
+  "vote": {
+    "tie_rule": "Bei Gleichstand gewinnt die Option, deren erste gültige Stimme früher abgegeben wurde. Gibt es keine einzige Stimme, gewinnt Option A.",
+    "one_vote_per_account": true
+  },
+  "instagram": {
+    "api_host": "https://graph.instagram.com",
+    "api_version": "v23.0",
+    "hashtags": ["#Mars", "#Marskolonie", "#Weltraum", "#SciFi", "#Aufbausimulation", "#3DAnimation", "#Blender", "#Zukunft", "#Raumfahrt", "#Community"]
+  }
+}

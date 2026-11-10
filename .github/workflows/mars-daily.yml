@@ -1,0 +1,97 @@
+name: Mars Colony – tägliches Reel
+
+on:
+  schedule:
+    - cron: "0 16 * * *"   # 16:00 UTC = 17:00 (Winter) / 18:00 (Sommer) in Berlin
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "test = ohne Veröffentlichung, publish = veröffentlichen"
+        default: test
+        type: choice
+        options: [test, publish]
+
+concurrency:
+  group: mars-colony
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  reel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    env:
+      PYTHONUTF8: "1"
+      BLENDER_VERSION: "5.3.0"
+      HF_KEY: ${{ secrets.HF_KEY }}
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      IG_USER_ID: ${{ secrets.IG_USER_ID }}
+      GH_SECRETS_TOKEN: ${{ secrets.GH_SECRETS_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Systempakete
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg fonts-dejavu-core xvfb libegl1 libgl1 libglx-mesa0 mesa-utils libxi6 libxkbcommon0 libsm6 libxrender1 libxxf86vm1
+
+      - name: Blender aus dem Cache
+        id: blender-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/blender
+          key: blender-${{ env.BLENDER_VERSION }}
+
+      - name: Blender herunterladen (offizielle Quelle)
+        if: steps.blender-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/blender
+          v=${BLENDER_VERSION%.*}
+          curl -fsSL "https://download.blender.org/release/Blender${v}/blender-${BLENDER_VERSION}-linux-x64.tar.xz" | tar -xJ -C ~/blender --strip-components=1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Python-Pakete
+        run: pip install -r requirements.txt
+
+      - name: Stimme aus dem Cache
+        uses: actions/cache@v4
+        with:
+          path: assets/voices
+          key: piper-de_DE-thorsten-high
+
+      - name: Stimme laden
+        run: |
+          test -f assets/voices/de_DE-thorsten-high.onnx || python -m piper.download_voices --data-dir assets/voices de_DE-thorsten-high
+
+      - name: Reel produzieren
+        run: |
+          printf '#!/bin/sh\nexec xvfb-run -a -s "-screen 0 1920x1080x24" "$HOME/blender/blender" "$@"\n' > /tmp/blender && chmod +x /tmp/blender
+          export BLENDER_BIN=/tmp/blender
+          MODE="${{ github.event.inputs.mode || 'publish' }}"
+          python -m mars.pipeline --mode "$MODE"
+
+      - name: Video als Artefakt sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel-${{ github.run_id }}
+          path: work/mars/*/mars_tag_*.mp4
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Weltzustand speichern
+        if: always()
+        run: |
+          git config user.name "mars-colony-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add state/
+          git diff --cached --quiet || git commit -m "Mars Colony: Zustand $(date -u +%F)"
+          git push

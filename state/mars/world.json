@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "seed": 2026,
+  "day": 0,
+  "population": 0,
+  "max_population": 0,
+  "followers_history": [],
+  "buildings": [
+    {
+      "id": "b0001",
+      "type": "lander",
+      "name": "Landemodul",
+      "cells": [
+        [
+          0,
+          -1
+        ]
+      ],
+      "pos": [
+        0.0,
+        -1.0
+      ],
+      "pos_unit": "cell",
+      "rot": 270,
+      "built_day": 0,
+      "source": "start"
+    },
+    {
+      "id": "b0002",
+      "type": "hab_small",
+      "name": "Wohnmodul",
+      "cells": [
+        [
+          -1,
+          0
+        ]
+      ],
+      "pos": [
+        -1.0,
+        0.0
+      ],
+      "pos_unit": "cell",
+      "rot": 0,
+      "built_day": 0,
+      "source": "start"
+    },
+    {
+      "id": "b0003",
+      "type": "hab_small",
+      "name": "Wohnmodul",
+      "cells": [
+        [
+          -1,
+          -1
+        ]
+      ],
+      "pos": [
+        -1.0,
+        -1.0
+      ],
+      "pos_unit": "cell",
+      "rot": 90,
+      "built_day": 0,
+      "source": "start"
+    },
+    {
+      "id": "b0004",
+      "type": "solar_small",
+      "name": "Solarfeld",
+      "cells": [
+        [
+          1,
+          -1
+        ]
+      ],
+      "pos": [
+        1.0,
+        -1.0
+      ],
+      "pos_unit": "cell",
+      "rot": 180,
+      "built_day": 0,
+      "source": "start"
+    },
+    {
+      "id": "b0005",
+      "type": "oxygen_plant",
+      "name": "Sauerstoffanlage",
+      "cells": [
+        [
+          -1,
+          1
+        ]
+      ],
+      "pos": [
+        -1.0,
+        1.0
+      ],
+      "pos_unit": "cell",
+      "rot": 270,
+      "built_day": 0,
+      "source": "start"
+    }
+  ],
+  "milestones_reached": [],
+  "votes": [],
+  "pending_vote": null,
+  "episodes": [],
+  "paused": null
+}

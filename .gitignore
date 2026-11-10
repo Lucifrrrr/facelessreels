@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+work/
+output/
+assets/voices/*.onnx
+state/mars/logs/
+state/mars/runs/*-test.json
+*.blend1

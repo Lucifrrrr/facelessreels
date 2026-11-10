@@ -1,0 +1,5 @@
+piper-tts==1.8.0
+onnxruntime==1.31.1
+numpy==2.5.4
+num2words==0.5.14
+tzdata
