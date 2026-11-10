@@ -8,6 +8,15 @@
       "eur": 0.56,
       "description": "Manueller Test-Clip (Kling 3.0 Turbo)",
       "ref": "01a1c6c3-0787-70b6-9769-b6e392b46b49"
+    },
+    {
+      "time": "2026-11-10T20:24:33",
+      "month": "2026-11",
+      "project": "mars-colony",
+      "service": "higgsfield",
+      "eur": 0.56,
+      "description": "Clip Tag 1",
+      "ref": "01a1c6ea-281a-76e9-b9e8-7e98f6af8f5a"
     }
   ]
 }

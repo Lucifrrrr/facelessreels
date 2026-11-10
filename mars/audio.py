@@ -28,6 +28,54 @@ def _voice(name: str):
     return _VOICE
 
 
+def speak_elevenlabs(text: str, out: Path, tts: dict, speed: float = 1.0,
+                     previous_text: str | None = None, next_text: str | None = None) -> float:
+    """ElevenLabs (natürliche Erzählerstimme). Fester voice_id = gleichbleibende Stimme."""
+    import json
+    import subprocess
+    import urllib.request
+
+    from .common import secret
+    from .compose import tool
+    e = tts["elevenlabs"]
+    body = {
+        "text": text,
+        "model_id": e.get("model_id", "eleven_multilingual_v2"),
+        "language_code": "de",
+        "voice_settings": {"stability": e.get("stability", 0.45), "similarity_boost": e.get("similarity_boost", 0.8),
+                           "style": e.get("style", 0.35), "use_speaker_boost": True,
+                           "speed": max(0.7, min(1.2, speed))},
+    }
+    if previous_text:
+        body["previous_text"] = previous_text
+    if next_text:
+        body["next_text"] = next_text
+    req = urllib.request.Request(
+        f"https://api.elevenlabs.io/v1/text-to-speech/{e['voice_id']}?output_format=mp3_44100_192",
+        data=json.dumps(body).encode(), method="POST",
+        headers={"xi-api-key": secret("ELEVENLABS_API_KEY"), "Content-Type": "application/json",
+                 "Accept": "audio/mpeg"})
+    with urllib.request.urlopen(req, timeout=120) as r:
+        mp3 = r.read()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_suffix(".mp3")
+    tmp.write_bytes(mp3)
+    subprocess.run([tool("ffmpeg"), "-y", "-loglevel", "error", "-i", str(tmp), "-ar", "44100", "-ac", "1", str(out)],
+                   check=True)
+    return wav_seconds(out)
+
+
+def speak_any(text: str, out: Path, tts: dict, speed: float = 1.0, **ctx) -> tuple[float, str]:
+    """ElevenLabs bevorzugt, bei Fehler/Kontingent automatisch Piper. Gibt (Dauer, Engine) zurück."""
+    if tts.get("engine") == "elevenlabs":
+        try:
+            return speak_elevenlabs(text, out, tts, speed, **ctx), "elevenlabs"
+        except Exception as e:  # noqa: BLE001
+            from .common import get_logger
+            get_logger().warning("ElevenLabs nicht verfügbar (%s) – nutze Piper", str(e)[:200])
+    return speak(text, out, tts["voice"], 1 / speed), "piper"
+
+
 def speak(text: str, out: Path, voice: str, length_scale: float = 1.0) -> float:
     """Text als WAV sprechen, gibt die Dauer in Sekunden zurück."""
     from piper import SynthesisConfig

@@ -117,19 +117,27 @@ class Run:
     def s_voice(self):
         sc = self.cp["steps"]["script"]
         t = self.cfg["tts"]
-        scale = t["length_scale"]
+        speed = 1 / t["length_scale"]
+        texts = [s["text"] for s in sc["segments"]]
         for _ in range(3):
-            segs = []
-            for s in sc["segments"]:
+            segs, engines = [], set()
+            for i, s in enumerate(sc["segments"]):
                 f = self.work / "voice" / f"{s['id']}.wav"
-                d = audio.speak(s["text"], f, t["voice"], scale)
-                segs.append({"id": s["id"], "file": str(f), "seconds": round(d, 3)})
+                d, engine = audio.speak_any(s["text"], f, t, speed,
+                                            previous_text=" ".join(texts[:i]) or None,
+                                            next_text=" ".join(texts[i + 1:]) or None)
+                engines.add(engine)
+                segs.append({"id": s["id"], "file": str(f), "seconds": round(d, 3), "engine": engine})
+            if len(engines) > 1:
+                # Nie zwei verschiedene Stimmen in einem Reel: komplett mit Piper wiederholen.
+                t = dict(t, engine="piper")
+                continue
             total = self._plan_total(segs)
             if total <= self.cfg["video"]["max_seconds"] - 0.5:
                 break
-            scale *= 0.92
-            log.info("Narration zu lang (%.1fs), spreche schneller (%.2f)", total, scale)
-        return {"segments": segs, "length_scale": scale}
+            speed *= 1.08
+            log.info("Narration zu lang (%.1fs), spreche schneller (%.2f)", total, speed)
+        return {"segments": segs, "speed": speed, "engine": engines.pop()}
 
     def _plan_total(self, segs):
         return sum(self._shot_seconds(s) for s in segs)

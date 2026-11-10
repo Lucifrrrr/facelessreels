@@ -19,6 +19,7 @@
   "tts": {
     "engine": "piper",
     "voice": "de_DE-thorsten-high",
+    "elevenlabs": {"voice_id": null, "model_id": "eleven_multilingual_v2", "stability": 0.45, "similarity_boost": 0.8, "style": 0.35},
     "length_scale": 1.0
   },
   "higgsfield": {
