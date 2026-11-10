@@ -1,7 +1,1 @@
-[
-  {
-    "time": "2026-11-10T20:20:39",
-    "level": "error",
-    "message": "Mars Colony Lauf 2026-11-10 fehlgeschlagen: unsupported format character 'O' (0x4f) at index 2\nTraceback (most recent call last):\n  File \"C:\\Users\\bhara\\facelessreels\\mars\\pipeline.py\", line 358, in main\n    cp = run.execute()\n  File \"C:\\Users\\bhara\\facelessreels\\mars\\pipeline.py\", line 329, in execute\n    self.step(\"compose\", self.s_compose)\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\bhara\\facelessreels\\mars\\pipeline.py\", line 69, in step\n    result = fn()\n  File \"C:\\Users\\bhara\\facelessreels\\mars\\pipeline.py\", line 243, in s_compose\n    compose.frames_to_clip(frames / seg[\"id\"], out, v[\"fps\"])\n    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\bhara\\facelessreels\\mars\\compose.py\", line 59, in frames_to_clip\n    run([tool(\"ffmpeg\"), \"-y\", \"-loglevel\", \"error\", \"-f\", \"concat\", \"-safe\", \"0\", \"-i\", str(listfile),\n         ~~~~^^^^^^^^^^\n  File \"C:\\Users\\bhara\\facelessreels\\mars\\compose.py\", line 27, in tool\n    r\"%LOCALAPPDATA%\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg*\\*\\bin\\%s.exe\" % name))\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~\nValueError: unsupported format character 'O' (0x4f) at index 2\n"
-  }
-]
+[]
