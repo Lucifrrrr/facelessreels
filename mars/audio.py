@@ -51,7 +51,7 @@ def speak_elevenlabs(text: str, out: Path, tts: dict, speed: float = 1.0,
     if next_text:
         body["next_text"] = next_text
     req = urllib.request.Request(
-        f"https://api.elevenlabs.io/v1/text-to-speech/{e['voice_id']}?output_format=mp3_44100_192",
+        f"https://api.elevenlabs.io/v1/text-to-speech/{e['voice_id']}?output_format=mp3_44100_128",
         data=json.dumps(body).encode(), method="POST",
         headers={"xi-api-key": secret("ELEVENLABS_API_KEY"), "Content-Type": "application/json",
                  "Accept": "audio/mpeg"})

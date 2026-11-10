@@ -17,9 +17,9 @@
     "preview_scale": 100
   },
   "tts": {
-    "engine": "piper",
+    "engine": "elevenlabs",
     "voice": "de_DE-thorsten-high",
-    "elevenlabs": {"voice_id": null, "model_id": "eleven_multilingual_v2", "stability": 0.45, "similarity_boost": 0.8, "style": 0.35},
+    "elevenlabs": {"voice_id": "kkJxCnlRCckmfFvzDW5Q", "voice_name": "Alexander - Deep TV Narrator", "model_id": "eleven_multilingual_v2", "stability": 0.45, "similarity_boost": 0.8, "style": 0.35},
     "length_scale": 1.0
   },
   "higgsfield": {
@@ -36,7 +36,8 @@
     "monthly_higgsfield_eur": 45,
     "fixed_monthly_costs_eur": {
       "github_actions": 0,
-      "piper_tts": 0
+      "piper_tts": 0,
+      "elevenlabs_starter": 6
     }
   },
   "colony": {
