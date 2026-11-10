@@ -174,10 +174,11 @@ def final_mix(clips: list[Path], timeline: list[dict], music: Path, sfx: list[tu
     video_only = work / "video_only.mp4"
     run([ff, "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(concat), "-c", "copy", str(video_only)])
 
-    inputs = ["-i", str(video_only), "-i", str(music)]
+    # Schritt 1: Ton separat mischen (vermeidet Deadlocks in großen Filtergraphen).
+    inputs = ["-i", str(music)]
     filters = []
     labels = []
-    idx = 2
+    idx = 1
     for seg in timeline:
         inputs += ["-i", str(seg["voice_file"])]
         ms = int(seg["voice_start"] * 1000)
@@ -193,18 +194,22 @@ def final_mix(clips: list[Path], timeline: list[dict], music: Path, sfx: list[tu
         sfx_labels.append(f"[s{idx}]")
         idx += 1
     filters.append("[voice]asplit=2[voice1][voicesc]")
-    filters.append(f"[1:a]volume=0.55,apad,atrim=0:{total:.3f}[mus]")
+    filters.append(f"[0:a]aresample=44100,aformat=channel_layouts=stereo,volume=0.55,apad,atrim=0:{total:.3f}[mus]")
     filters.append("[mus][voicesc]sidechaincompress=threshold=0.03:ratio=6:attack=20:release=400[duck]")
     mix_in = "[voice1][duck]" + "".join(sfx_labels)
     filters.append(f"{mix_in}amix=inputs={2 + len(sfx_labels)}:normalize=0,atrim=0:{total:.3f},"
-                   f"loudnorm=I=-14:TP=-1.5:LRA=11[aout]")
-    ass_path = ass.resolve().as_posix().replace(":", "\\:")
-    filters.append(f"[0:v]subtitles='{ass_path}',format=yuv420p[vout]")
+                   f"loudnorm=I=-14:TP=-1.5:LRA=11,aresample=48000[aout]")
+    mix_wav = work / "mix.wav"
     run([ff, "-y", "-loglevel", "error", *inputs, "-filter_complex", ";".join(filters),
-         "-map", "[vout]", "-map", "[aout]", "-t", f"{total:.3f}",
+         "-map", "[aout]", "-t", f"{total:.3f}", "-c:a", "pcm_s16le", str(mix_wav)], timeout=600)
+
+    # Schritt 2: Bild mit Untertiteln/Overlays + fertigen Ton zusammenführen.
+    ass_path = ass.resolve().as_posix().replace(":", "\\:")
+    run([ff, "-y", "-loglevel", "error", "-i", str(video_only), "-i", str(mix_wav),
+         "-vf", f"subtitles='{ass_path}',format=yuv420p", "-map", "0:v", "-map", "1:a", "-t", f"{total:.3f}",
          "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-profile:v", "high", "-pix_fmt", "yuv420p",
          "-r", str(fps), "-g", str(fps * 2),
-         "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", str(out)])
+         "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", str(out)], timeout=1800)
     return out
 
 
